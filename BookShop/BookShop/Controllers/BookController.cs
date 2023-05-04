@@ -7,111 +7,64 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BookShop.Data;
 using BookShop.Models;
+using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace BookShop.Controllers
 {
     public class BookController : Controller
     {
-        private readonly BookShopContext _context;
+        private readonly IConfiguration _configuration;
 
-        public BookController(BookShopContext context)
+        public BookController(IConfiguration configuration)
         {
-            _context = context;
+            this._configuration = configuration;
         }
 
         // GET: Book
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-              return _context.BookViewModel != null ? 
-                          View(await _context.BookViewModel.ToListAsync()) :
-                          Problem("Entity set 'BookShopContext.BookViewModel'  is null.");
+            DataTable dtbl = new DataTable();
+            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("DevConnection")))
+            {
+                sqlConnection.Open();
+                SqlDataAdapter sqlDa = new SqlDataAdapter("BookViewAll", sqlConnection);
+                sqlDa.SelectCommand.CommandType = CommandType.StoredProcedure;
+                sqlDa.Fill(dtbl);
+            }
+            return View(dtbl);
         }
 
-        // GET: Book/Details/5
-        public async Task<IActionResult> Details(int? id)
+
+
+        // GET: Book/AddOrEdit/
+        public IActionResult AddOrEdit(int? id)
         {
-            if (id == null || _context.BookViewModel == null)
-            {
-                return NotFound();
-            }
-
-            var bookViewModel = await _context.BookViewModel
-                .FirstOrDefaultAsync(m => m.BookID == id);
-            if (bookViewModel == null)
-            {
-                return NotFound();
-            }
-
+            BookViewModel bookViewModel = new BookViewModel();
+            if (id > 0)
+                bookViewModel = FetchBookByID(id);
             return View(bookViewModel);
         }
 
-        // GET: Book/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Book/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: Book/AddOrEdit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
+        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("BookID,Title,Author,Price")] BookViewModel bookViewModel)
+        public IActionResult AddOrEdit(int id, [Bind("BookID,Title,Author,Price")] BookViewModel bookViewModel)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(bookViewModel);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(bookViewModel);
-        }
-
-        // GET: Book/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null || _context.BookViewModel == null)
-            {
-                return NotFound();
-            }
-
-            var bookViewModel = await _context.BookViewModel.FindAsync(id);
-            if (bookViewModel == null)
-            {
-                return NotFound();
-            }
-            return View(bookViewModel);
-        }
-
-        // POST: Book/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("BookID,Title,Author,Price")] BookViewModel bookViewModel)
-        {
-            if (id != bookViewModel.BookID)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
+                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("DevConnection")))
                 {
-                    _context.Update(bookViewModel);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!BookViewModelExists(bookViewModel.BookID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    sqlConnection.Open();
+                    SqlCommand sqlCmd = new SqlCommand("BookAddOrEdit", sqlConnection);
+                    sqlCmd.CommandType = CommandType.StoredProcedure;
+                    sqlCmd.Parameters.AddWithValue("BookID", bookViewModel.BookID);
+                    sqlCmd.Parameters.AddWithValue("Title", bookViewModel.Title);
+                    sqlCmd.Parameters.AddWithValue("Author", bookViewModel.Author);
+                    sqlCmd.Parameters.AddWithValue("Price", bookViewModel.Price);
+                    sqlCmd.ExecuteNonQuery();
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -119,45 +72,49 @@ namespace BookShop.Controllers
         }
 
         // GET: Book/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
-            if (id == null || _context.BookViewModel == null)
-            {
-                return NotFound();
-            }
-
-            var bookViewModel = await _context.BookViewModel
-                .FirstOrDefaultAsync(m => m.BookID == id);
-            if (bookViewModel == null)
-            {
-                return NotFound();
-            }
-
+            BookViewModel bookViewModel = FetchBookByID(id);
             return View(bookViewModel);
         }
 
         // POST: Book/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            if (_context.BookViewModel == null)
+            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("DevConnection")))
             {
-                return Problem("Entity set 'BookShopContext.BookViewModel'  is null.");
+                sqlConnection.Open();
+                SqlCommand sqlCmd = new SqlCommand("BookDeleteByID", sqlConnection);
+                sqlCmd.CommandType = CommandType.StoredProcedure;
+                sqlCmd.Parameters.AddWithValue("BookID", id);
+                sqlCmd.ExecuteNonQuery();
             }
-            var bookViewModel = await _context.BookViewModel.FindAsync(id);
-            if (bookViewModel != null)
-            {
-                _context.BookViewModel.Remove(bookViewModel);
-            }
-            
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool BookViewModelExists(int id)
+        [NonAction]
+        public BookViewModel FetchBookByID(int? id)
         {
-          return (_context.BookViewModel?.Any(e => e.BookID == id)).GetValueOrDefault();
+            BookViewModel bookViewModel = new BookViewModel();
+            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("DevConnection")))
+            {
+                DataTable dtbl = new DataTable();
+                sqlConnection.Open();
+                SqlDataAdapter sqlDa = new SqlDataAdapter("BookViewByID", sqlConnection);
+                sqlDa.SelectCommand.CommandType = CommandType.StoredProcedure;
+                sqlDa.SelectCommand.Parameters.AddWithValue("BookID", id);
+                sqlDa.Fill(dtbl);
+                if (dtbl.Rows.Count == 1)
+                {
+                    bookViewModel.BookID = Convert.ToInt32(dtbl.Rows[0]["BookID"].ToString());
+                    bookViewModel.Title = dtbl.Rows[0]["Title"].ToString();
+                    bookViewModel.Author = dtbl.Rows[0]["Author"].ToString();
+                    bookViewModel.Price = Convert.ToInt32(dtbl.Rows[0]["Price"].ToString());
+                }
+                return bookViewModel;
+            }
         }
     }
 }
