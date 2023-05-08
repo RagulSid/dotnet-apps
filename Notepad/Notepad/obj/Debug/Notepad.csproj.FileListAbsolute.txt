@@ -1,0 +1,11 @@
+C:\Users\ragultn\source\repos\Notepad\Notepad\bin\Debug\Notepad.exe.config
+C:\Users\ragultn\source\repos\Notepad\Notepad\bin\Debug\Notepad.exe
+C:\Users\ragultn\source\repos\Notepad\Notepad\bin\Debug\Notepad.pdb
+C:\Users\ragultn\source\repos\Notepad\Notepad\obj\Debug\Notepad.csproj.AssemblyReference.cache
+C:\Users\ragultn\source\repos\Notepad\Notepad\obj\Debug\Notepad.csproj.SuggestedBindingRedirects.cache
+C:\Users\ragultn\source\repos\Notepad\Notepad\obj\Debug\Notepad.Form1.resources
+C:\Users\ragultn\source\repos\Notepad\Notepad\obj\Debug\Notepad.Properties.Resources.resources
+C:\Users\ragultn\source\repos\Notepad\Notepad\obj\Debug\Notepad.csproj.GenerateResource.cache
+C:\Users\ragultn\source\repos\Notepad\Notepad\obj\Debug\Notepad.csproj.CoreCompileInputs.cache
+C:\Users\ragultn\source\repos\Notepad\Notepad\obj\Debug\Notepad.exe
+C:\Users\ragultn\source\repos\Notepad\Notepad\obj\Debug\Notepad.pdb
