@@ -1,0 +1,48 @@
+﻿@page
+@model AuctionSystem.Pages.AdminHome.AdminProduct.AdminProductModel
+@{
+}
+
+<style>
+    .card {
+        width: 45%; /* set the width of the cards */
+        margin-right: 2%; /* add some space between the cards */
+        margin-bottom: 2%; /* add some space below the cards */
+        display: inline-block; /* display the cards inline */
+        vertical-align: top; /* align the cards to the top of the row */
+    }
+
+         
+</style>
+<h2>Welcome Admin Hotels</h2>
+
+@foreach (var item in Model.listProducts)
+{
+      <div class="card" style="width: 18rem;">
+    <img src="..." class="card-img-top" alt="...">
+    <div class="card-body">
+        <table class="table">
+            <tbody>
+                <tr>
+
+                        <td>hotel Name</td>
+                        <td>@item.hotelname</td>
+                </tr>
+                <tr>
+                    <td>Location</td>
+                    <td>@item.location</td>
+                </tr>
+                <tr>
+                    <td>rating</td>
+                        <td>@item.rating</td>
+                </tr>
+
+            </tbody>
+            
+        </table>
+            
+  </div>
+  </div>
+
+}
+ 
