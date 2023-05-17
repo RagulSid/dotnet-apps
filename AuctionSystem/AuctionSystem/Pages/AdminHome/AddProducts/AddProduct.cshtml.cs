@@ -31,8 +31,9 @@ namespace AuctionSystem.Pages.AdminHome.addHotels
               productInfo.hotelname = Request.Form["hotelname"];
               productInfo.location = Request.Form["location"];
               productInfo.rating = Request.Form["rating"];
+              productInfo.hotelimage = Request.Form["hotelimage"];
 
-            
+
 
 
 
@@ -48,13 +49,14 @@ namespace AuctionSystem.Pages.AdminHome.addHotels
                       connection.Open();
 
 
-                      String sql = "INSERT INTO addHotel" + "(hotelname,location,rating) VALUES " + "(@hotelname,@location,@rating );";
+                      String sql = "INSERT INTO addHotel" + "(hotelname,location,rating, hotelimage) VALUES " + "(@hotelname,@location,@rating, @hotelimage );";
                       using (SqlCommand command = new SqlCommand(sql, connection))
                       {
                           command.Parameters.AddWithValue("@hotelname", productInfo.hotelname);
                           command.Parameters.AddWithValue("@location", productInfo.location);
                           command.Parameters.AddWithValue("@rating", productInfo.rating);
-                          command.ExecuteNonQuery();
+                          command.Parameters.AddWithValue("@hotelimage", productInfo.hotelimage);
+                        command.ExecuteNonQuery();
                       }
                   }
 
@@ -68,11 +70,12 @@ namespace AuctionSystem.Pages.AdminHome.addHotels
               productInfo.hotelname = "";
               productInfo.location = "";
               productInfo.rating = "";
- 
+              productInfo.hotelimage = "";
 
 
 
-              successMessage = "New Product Added ";
+
+            successMessage = "New Product Added ";
 
               Response.Redirect("/AdminHome/AdminProduct/AdminProduct");
           }
